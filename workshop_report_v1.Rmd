@@ -1,0 +1,37 @@
+---
+title: "Impact Workshop Feedback"
+date: "`r conr::format_date()`"
+author: "Connor Ballinger"
+knit: conr::write_and_date
+output: conr::format_html
+---
+
+```{r, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set()
+
+library(here)
+library(tidyverse)
+library(knitr)
+
+registerS3method("knit_print", "data.frame", conr::knit_print.data.frame)
+
+# theme_set(theme_bw() + theme(legend.position = "bottom"))
+# options(digits = 4, big.mark = ",", scipen = 999)
+
+```
+
+
+```{r}
+# set up redcap api
+
+url <- "https://redcap.hmri.org.au/api/"
+token <- Sys.getenv("redcap_token")
+```
+
+```{r}
+# get data
+
+data <- REDCapR::redcap_read(redcap_uri = url, token = token)$data
+str(data)
+```
+
