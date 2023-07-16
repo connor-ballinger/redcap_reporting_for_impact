@@ -6,8 +6,8 @@ knit: conr::write_and_date
 output: conr::format_html
 ---
 
-```{r, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set()
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, echo=FALSE)
 
 library(here)
 library(tidyverse)
@@ -22,8 +22,16 @@ registerS3method("knit_print", "data.frame", conr::knit_print.data.frame)
 theme_set(theme_bw() + theme(legend.position = "bottom"))
 # options(digits = 4, big.mark = ",", scipen = 999)
 
-```
+# .data[["string"]] is similar to {{ var }}
 
+plot_survey <- function(data, question) {
+  ggplot(data = data) +
+    geom_bar(aes(.data[[question]]), fill = "#23285E") +
+    labs(title = var_label(data[, question]), x = "", y = "") +
+    scale_x_discrete(drop = FALSE) +
+    easy_labs()
+}
+```
 
 ```{r}
 # set up redcap api
@@ -46,33 +54,55 @@ labels <- redcap_read(redcap_uri = url, token = token, raw_or_label = "label",
 ```
 
 ```{r}
-raw
-```
-
-```{r}
 df <- raw |> 
   mutate(across(starts_with("rate"), ~ factor(.x, levels = 1:5, ordered = TRUE))) |> 
   mutate(across(c(recommend, responses), ~ factor(.x, levels = 0:1, labels = c("No", "Yes"))))
-str(df)
+
+var_label(df) <- c(names(labels))
 ```
 
 ```{r}
-var_label(df) <- c(names(labels))
+plot_survey(df, "recommend")
+```
 
-# .data[["string"]] is similar to {{ var }}
+# Rating Responses {.tabset}
 
-plot_survey <- function(data, question) {
-  ggplot(data = data) +
-    geom_bar(aes(.data[[question]]), fill = "#23285E") +
-    scale_x_discrete(drop = FALSE) +
-    easy_labs()
-}
+## Overall
 
+```{r}
+rate_all <- df |>
+  pivot_longer(cols = contains("rate"), 
+               names_to = "rating_aspect", 
+               values_to = "all_ratings")
+var_label(rate_all$all_ratings) <- "Aggregate ratings from all questions"
+plot_survey(rate_all, "all_ratings") 
+```
+
+## All 11 Questions
+
+```{r}
 rate_vector <- grep("rate", names(df), value = TRUE)
 
 for (i in rate_vector) {
   plot = plot_survey(df, i)
   print(plot)
 }
+
+```
+
+# Suggestions
+
+```{r, results='asis'}
+
+cat(na.omit(df$suggestions), sep = '<br /> <br />')
+
+```
+
+# Feedback
+
+```{r, results='asis'}
+
+cat(na.omit(df$other_feedback), sep = '<br /> <br />')
+
 ```
 
