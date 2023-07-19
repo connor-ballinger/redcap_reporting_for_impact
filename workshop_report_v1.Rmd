@@ -37,7 +37,7 @@ plot_survey <- function(data, question) {
 # set up redcap api
 
 url <- "https://redcap.hmri.org.au/api/"
-token <- Sys.getenv("redcap_token") 
+token <- Sys.getenv("redcap_token_test") 
 
 # api key is stored in .Renviron for security
 ```
